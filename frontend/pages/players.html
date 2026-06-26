@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jogadores — DeckBound</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>body { font-family: 'Inter', sans-serif; } .font-display { font-family: 'Cinzel', serif; }</style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+
+  <nav class="border-b border-gray-800 bg-gray-900">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="../index.html" class="font-display text-2xl text-amber-400 tracking-widest">DeckBound</a>
+      <div class="flex gap-6 text-sm text-gray-400">
+        <a href="../index.html" class="hover:text-gray-100 transition">Inicio</a>
+        <a href="players.html" class="text-amber-400">Jogadores</a>
+        <a href="matches.html" class="hover:text-gray-100 transition">Nova Partida</a>
+        <a href="history.html" class="hover:text-gray-100 transition">Historico</a>
+        <a href="ranking.html" class="hover:text-gray-100 transition">Ranking</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-4 py-10">
+    <h1 class="font-display text-3xl text-amber-400 tracking-wider mb-8">Jogadores</h1>
+
+    <!-- Formulário de cadastro -->
+    <div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+      <h2 class="text-gray-300 font-medium mb-4">Cadastrar Jogador</h2>
+      <div class="flex gap-3">
+        <input id="input-nome" type="text" placeholder="Nome do jogador"
+          class="flex-1 bg-gray-800 border border-gray-700 rounded px-4 py-2 text-gray-100 placeholder-gray-600
+                 focus:outline-none focus:border-amber-500 transition" />
+        <button id="btn-salvar"
+          class="bg-amber-500 hover:bg-amber-400 text-gray-950 font-semibold px-6 py-2 rounded transition">
+          Salvar
+        </button>
+      </div>
+      <div id="form-erro" class="text-red-400 text-sm mt-2 hidden"></div>
+    </div>
+
+    <!-- Lista de jogadores -->
+    <div id="lista-jogadores" class="space-y-2">
+      <div class="text-gray-600 text-sm">Carregando...</div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { api } from '../js/api.js';
+
+    const inputNome = document.getElementById('input-nome');
+    const btnSalvar = document.getElementById('btn-salvar');
+    const formErro  = document.getElementById('form-erro');
+    const lista     = document.getElementById('lista-jogadores');
+
+    function mostrarErro(msg) {
+      formErro.textContent = msg;
+      formErro.classList.remove('hidden');
+    }
+    function limparErro() {
+      formErro.classList.add('hidden');
+    }
+
+    async function carregarJogadores() {
+      try {
+        const players = await api.players.listar();
+        if (players.length === 0) {
+          lista.innerHTML = '<div class="text-gray-600 text-sm">Nenhum jogador cadastrado ainda.</div>';
+          return;
+        }
+        lista.innerHTML = players.map(p => `
+          <div class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-lg px-5 py-4">
+            <div>
+              <span class="font-medium text-gray-100">${p.nome}</span>
+              <span class="text-gray-600 text-xs ml-3">ID #${p.id}</span>
+            </div>
+            <button data-id="${p.id}"
+              class="btn-deletar text-gray-600 hover:text-red-400 text-sm transition">
+              Remover
+            </button>
+          </div>
+        `).join('');
+
+        document.querySelectorAll('.btn-deletar').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!confirm('Remover este jogador?')) return;
+            try {
+              await api.players.deletar(Number(btn.dataset.id));
+              carregarJogadores();
+            } catch (e) {
+              alert(e.message);
+            }
+          });
+        });
+      } catch (e) {
+        lista.innerHTML = `<div class="text-red-400 text-sm">${e.message}</div>`;
+      }
+    }
+
+    btnSalvar.addEventListener('click', async () => {
+      limparErro();
+      const nome = inputNome.value.trim();
+      if (!nome) { mostrarErro('Informe um nome.'); return; }
+      try {
+        await api.players.criar({ nome });
+        inputNome.value = '';
+        carregarJogadores();
+      } catch (e) {
+        mostrarErro(e.message);
+      }
+    });
+
+    inputNome.addEventListener('keydown', e => {
+      if (e.key === 'Enter') btnSalvar.click();
+    });
+
+    carregarJogadores();
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# Spring Boot
+application-prod.properties
+application-local.properties
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes (não versionar dados locais)
+pgdata/
+
+# Node (caso use futuramente)
+node_modules/
+npm-debug.log

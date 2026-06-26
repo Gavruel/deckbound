@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeckBound</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-display { font-family: 'Cinzel', serif; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="border-b border-gray-800 bg-gray-900">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html" class="font-display text-2xl text-amber-400 tracking-widest">DeckBound</a>
+      <div class="flex gap-6 text-sm text-gray-400">
+        <a href="index.html" class="text-amber-400">Inicio</a>
+        <a href="pages/players.html" class="hover:text-gray-100 transition">Jogadores</a>
+        <a href="pages/matches.html" class="hover:text-gray-100 transition">Nova Partida</a>
+        <a href="pages/history.html" class="hover:text-gray-100 transition">Historico</a>
+        <a href="pages/ranking.html" class="hover:text-gray-100 transition">Ranking</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-4 py-12">
+
+    <!-- Hero -->
+    <div class="text-center mb-16">
+      <h1 class="font-display text-5xl text-amber-400 mb-4 tracking-widest">DeckBound</h1>
+      <p class="text-gray-400 text-lg"></p>
+    </div>
+
+    <!-- Stats rápidas -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12" id="stats">
+      <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-center">
+        <div class="text-3xl font-bold text-amber-400" id="stat-partidas">—</div>
+        <div class="text-gray-500 text-sm mt-1">Partidas</div>
+      </div>
+      <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-center">
+        <div class="text-3xl font-bold text-amber-400" id="stat-jogadores">—</div>
+        <div class="text-gray-500 text-sm mt-1">Jogadores</div>
+      </div>
+      <!-- <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-center">
+        <div class="text-3xl font-bold text-amber-400" id="stat-comandantes">—</div>
+        <div class="text-gray-500 text-sm mt-1">Comandantes</div>
+      </div> -->
+      <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-center">
+        <div class="text-3xl font-bold text-amber-400" id="stat-lider">—</div>
+        <div class="text-gray-500 text-sm mt-1">Lider do Ranking</div>
+      </div>
+    </div>
+
+    <!-- Ações rápidas -->
+    <div class="grid md:grid-cols-3 gap-4 mb-12">
+      <a href="pages/matches.html"
+         class="bg-amber-500 hover:bg-amber-400 text-gray-950 rounded-lg p-6 text-center font-semibold transition">
+        Registrar Partida
+      </a>
+      <a href="pages/history.html"
+         class="bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg p-6 text-center text-gray-100 transition">
+        Ver Historico
+      </a>
+      <a href="pages/ranking.html"
+         class="bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg p-6 text-center text-gray-100 transition">
+        Ver Ranking
+      </a>
+    </div>
+
+    <!-- Ultimas partidas -->
+    <section>
+      <h2 class="font-display text-xl text-gray-300 mb-4 tracking-wider">Ultimas Partidas</h2>
+      <div id="ultimas-partidas" class="space-y-3">
+        <div class="text-gray-600 text-sm">Carregando...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import { api } from '../js/api.js';
+
+    async function carregarStats() {
+      try {
+        const [matches, players, ranking] = await Promise.all([
+          api.matches.listar(),
+          api.players.listar(),
+          //api.commanders.listar(),
+          api.players.ranking(),
+        ]);
+
+        document.getElementById('stat-partidas').textContent    = matches.length;
+        document.getElementById('stat-jogadores').textContent   = players.length;
+        // document.getElementById('stat-comandantes').textContent = commanders.length;
+        document.getElementById('stat-lider').textContent       = ranking[0]?.nome ?? '—';
+
+        const container = document.getElementById('ultimas-partidas');
+        const ultimas = matches.slice(0, 5);
+        if (ultimas.length === 0) {
+          container.innerHTML = '<div class="text-gray-600 text-sm">Nenhuma partida registrada ainda.</div>';
+          return;
+        }
+        container.innerHTML = ultimas.map(m => `
+          <a href="pages/match-detail?id=${m.id}"
+             class="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-lg px-5 py-4 hover:border-amber-500 transition">
+            <div>
+              <span class="text-sm text-amber-400 font-medium">${m.formato}</span>
+              <span class="text-gray-500 text-xs ml-3">${new Date(m.data).toLocaleDateString('pt-BR')}</span>
+            </div>
+            <div class="text-sm text-gray-300">
+              Vencedor: <span class="text-amber-400 font-medium">${m.vencedor?.nome ?? '—'}</span>
+            </div>
+          </a>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+        document.getElementById('ultimas-partidas').innerHTML =
+          '<div class="text-red-500 text-sm">Erro ao conectar com a API. Verifique se o backend está rodando.</div>';
+      }
+    }
+
+    carregarStats();
+  </script>
+</body>
+</html>
