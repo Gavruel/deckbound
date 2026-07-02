@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,21 +27,21 @@ public class MatchService {
     private final CommanderRepository commanderRepository;
 
     @Transactional(readOnly = true)
-    public List<MatchResponse> listarTodas() {
-        return matchRepository.findAllWithDetails().stream()
+    public List<MatchResponse> listAll(UUID playgroupId) {
+        return matchRepository.findAllWithDetails(playgroupId).stream()
             .map(MatchResponse::from)
             .toList();
     }
 
     @Transactional(readOnly = true)
-    public MatchResponse buscarPorId(Long id) {
-        Match match = matchRepository.findByIdWithAllDetails(id)
+    public MatchResponse findById(Long id, UUID playgroupId) {
+        Match match = matchRepository.findByIdWithAllDetails(id, playgroupId)
             .orElseThrow(() -> new ResourceNotFoundException("Match", id));
         return MatchResponse.from(match);
     }
 
     @Transactional
-    public MatchResponse criar(CreateMatchRequest request) {
+    public MatchResponse create(UUID playgroupId, CreateMatchRequest request) {
         // Valida número de jogadores
         if (request.jogadores().size() < 2) {
             throw new BusinessException("Uma partida precisa de ao menos 2 jogadores.");

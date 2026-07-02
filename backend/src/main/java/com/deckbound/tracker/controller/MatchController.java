@@ -11,27 +11,29 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/matches")
+@RequestMapping("/api/playgroups/{playgroupId}/matches")
 @RequiredArgsConstructor
 public class MatchController {
 
     private final MatchService matchService;
 
     @GetMapping
-    public ResponseEntity<List<MatchResponse>> listarTodas() {
-        return ResponseEntity.ok(matchService.listarTodas());
+    public ResponseEntity<List<MatchResponse>> listAll(@PathVariable UUID playgroupId) {
+        return ResponseEntity.ok(matchService.listAll(playgroupId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MatchResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(matchService.buscarPorId(id));
+    public ResponseEntity<MatchResponse> findById(@PathVariable Long id, UUID playgroupId) {
+        return ResponseEntity.ok(matchService.findById(id, playgroupId));
     }
 
     @PostMapping
-    public ResponseEntity<MatchResponse> criar(@Valid @RequestBody CreateMatchRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(matchService.criar(request));
+    public ResponseEntity<MatchResponse> create(@PathVariable UUID playgroupId,
+                                                @Valid @RequestBody CreateMatchRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(matchService.create(playgroupId, request));
     }
 
     @PatchMapping("/{id}/observacoes")

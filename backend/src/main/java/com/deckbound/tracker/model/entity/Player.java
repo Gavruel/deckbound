@@ -18,6 +18,10 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JoinColumn(name = "playgroup_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Playgroup playgroup;
+
     @Column(nullable = false, length = 100)
     private String nome;
 

@@ -5,38 +5,48 @@ import com.deckbound.tracker.dto.response.PlayerResponse;
 import com.deckbound.tracker.dto.response.RankingEntryResponse;
 import com.deckbound.tracker.exception.ResourceNotFoundException;
 import com.deckbound.tracker.model.entity.Player;
+import com.deckbound.tracker.model.entity.Playgroup;
 import com.deckbound.tracker.repository.PlayerRepository;
+import com.deckbound.tracker.repository.PlaygroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final PlaygroupRepository playgroupRepository;
+
 
     @Transactional(readOnly = true)
-    public List<PlayerResponse> listarTodos() {
+    public List<PlayerResponse> listAll(UUID playgroupId) {
         return playerRepository.findAll().stream()
             .map(PlayerResponse::from)
             .toList();
     }
 
     @Transactional(readOnly = true)
-    public PlayerResponse buscarPorId(Long id) {
+    public PlayerResponse findById(Long id) {
         Player player = playerRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Player", id));
         return PlayerResponse.from(player);
     }
 
     @Transactional
-    public PlayerResponse criar(CreatePlayerRequest request) {
+    public PlayerResponse create(UUID playgroupId, CreatePlayerRequest request) {
+        Playgroup playgroup = playgroupRepository.findById(playgroupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Playgroup", playgroupId));
+
         Player player = Player.builder()
-            .nome(request.nome())
-            .build();
+                .nome(request.nome())
+                .playgroup(playgroup)
+                .build();
+
         return PlayerResponse.from(playerRepository.save(player));
     }
 

@@ -11,27 +11,28 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/players")
+@RequestMapping("/api/playgroups/{playgroupId}/players")
 @RequiredArgsConstructor
 public class PlayerController {
 
     private final PlayerService playerService;
 
     @GetMapping
-    public ResponseEntity<List<PlayerResponse>> listarTodos() {
-        return ResponseEntity.ok(playerService.listarTodos());
+    public ResponseEntity<List<PlayerResponse>> listAll(@PathVariable UUID playgroupId) {
+        return ResponseEntity.ok(playerService.listAll(playgroupId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlayerResponse> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(playerService.buscarPorId(id));
+    public ResponseEntity<PlayerResponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(playerService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<PlayerResponse> criar(@Valid @RequestBody CreatePlayerRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(playerService.criar(request));
+    public ResponseEntity<PlayerResponse> create(@PathVariable UUID playgroupId , @Valid @RequestBody CreatePlayerRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(playerService.create(playgroupId, request));
     }
 
     @PutMapping("/{id}")
