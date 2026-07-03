@@ -21,5 +21,4 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     """)
     List<Object[]> findRanking();
 
-    Arrays findAll(UUID playgroupId);
 }

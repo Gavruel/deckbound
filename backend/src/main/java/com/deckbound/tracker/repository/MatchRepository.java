@@ -36,4 +36,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
         AND m.playgroup.id = :playgroupId
     """)
     Optional<Match> findByIdWithAllDetails(@Param("id") Long id,@Param("playgroupId") UUID playgroupId);
+
+    Optional<Match> findByIdAndPlaygroup_Id(Long id, UUID playgroupId);
 }

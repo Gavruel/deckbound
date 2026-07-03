@@ -10,6 +10,7 @@ import com.deckbound.tracker.model.enums.MatchPlayerCommanderRole;
 import com.deckbound.tracker.repository.CommanderRepository;
 import com.deckbound.tracker.repository.MatchRepository;
 import com.deckbound.tracker.repository.PlayerRepository;
+import com.deckbound.tracker.repository.PlaygroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,25 +25,25 @@ public class MatchService {
 
     private final MatchRepository matchRepository;
     private final PlayerRepository playerRepository;
+    private final PlaygroupRepository playgroupRepository;
     private final CommanderRepository commanderRepository;
 
     @Transactional(readOnly = true)
     public List<MatchResponse> listAll(UUID playgroupId) {
         return matchRepository.findAllWithDetails(playgroupId).stream()
-            .map(MatchResponse::from)
-            .toList();
+                .map(MatchResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public MatchResponse findById(Long id, UUID playgroupId) {
         Match match = matchRepository.findByIdWithAllDetails(id, playgroupId)
-            .orElseThrow(() -> new ResourceNotFoundException("Match", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Match", id));
         return MatchResponse.from(match);
     }
 
     @Transactional
     public MatchResponse create(UUID playgroupId, CreateMatchRequest request) {
-        // Valida número de jogadores
         if (request.jogadores().size() < 2) {
             throw new BusinessException("Uma partida precisa de ao menos 2 jogadores.");
         }
@@ -50,11 +51,16 @@ public class MatchService {
             throw new BusinessException("Uma partida pode ter no máximo 8 jogadores.");
         }
 
-        // Busca o vencedor
-        Player vencedor = playerRepository.findById(request.vencedorId())
-            .orElseThrow(() -> new ResourceNotFoundException("Player (vencedor)", request.vencedorId()));
+        Playgroup playgroup = playgroupRepository.findById(playgroupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Playgroup", playgroupId));
 
-        // Monta a entidade Match
+        Player vencedor = playerRepository.findById(request.vencedorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Player (vencedor)", request.vencedorId()));
+
+        if (!vencedor.getPlaygroup().getId().equals(playgroupId)) {
+            throw new BusinessException("O vencedor não pertence a este Playgroup.");
+        }
+
         MatchFormat format;
         try {
             format = MatchFormat.valueOf(request.formato().toUpperCase());
@@ -63,15 +69,15 @@ public class MatchService {
         }
 
         Match match = Match.builder()
-            .data(request.data())
-            .matchFormat(format)
-            .vencedor(vencedor)
-            .observacoes(request.observacoes())
-            .jogadores(new LinkedHashSet<>())
-            .comentarios(new LinkedHashSet<>())
-            .build();
+                .data(request.data())
+                .matchFormat(format)
+                .vencedor(vencedor)
+                .playgroup(playgroup)
+                .observacoes(request.observacoes())
+                .jogadores(new LinkedHashSet<>())
+                .comentarios(new LinkedHashSet<>())
+                .build();
 
-        // Monta os jogadores da partida
         boolean vencedorParticipa = false;
         for (CreateMatchRequest.MatchPlayerRequest mpReq : request.jogadores()) {
             if (mpReq.playerId() == null && (mpReq.guestNome() == null
@@ -80,14 +86,20 @@ public class MatchService {
             }
 
             MatchPlayer mp = MatchPlayer.builder()
-                .match(match)
-                .guestNome(mpReq.guestNome())
-                .comandantes(new LinkedHashSet<>())
-                .build();
+                    .match(match)
+                    .guestNome(mpReq.guestNome())
+                    .comandantes(new LinkedHashSet<>())
+                    .build();
 
             if (mpReq.playerId() != null) {
                 Player player = playerRepository.findById(mpReq.playerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Player", mpReq.playerId()));
+                        .orElseThrow(() -> new ResourceNotFoundException("Player", mpReq.playerId()));
+
+                if (!player.getPlaygroup().getId().equals(playgroupId)) {
+                    throw new BusinessException("O jogador " + player.getNome() +
+                            " não pertence a este Playgroup.");
+                }
+
                 mp.setPlayer(player);
 
                 if (player.getId().equals(request.vencedorId())) {
@@ -95,7 +107,6 @@ public class MatchService {
                 }
             }
 
-            // Adiciona comandantes se houver
             if (mpReq.comandantes() != null) {
                 for (CreateMatchRequest.CommanderSlotRequest slotReq : mpReq.comandantes()) {
                     MatchPlayerCommanderRole role;
@@ -106,13 +117,13 @@ public class MatchService {
                     }
 
                     Commander commander = commanderRepository.findById(slotReq.commanderId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Commander", slotReq.commanderId()));
+                            .orElseThrow(() -> new ResourceNotFoundException("Commander", slotReq.commanderId()));
 
                     MatchPlayerCommander mpc = MatchPlayerCommander.builder()
-                        .matchPlayer(mp)
-                        .commander(commander)
-                        .role(role)
-                        .build();
+                            .matchPlayer(mp)
+                            .commander(commander)
+                            .role(role)
+                            .build();
 
                     mp.getComandantes().add(mpc);
                 }
@@ -121,7 +132,6 @@ public class MatchService {
             match.getJogadores().add(mp);
         }
 
-        // Valida que o vencedor está na partida
         if (!vencedorParticipa) {
             throw new BusinessException("O vencedor informado não está na lista de jogadores da partida.");
         }
@@ -130,18 +140,17 @@ public class MatchService {
     }
 
     @Transactional
-    public MatchResponse atualizarObservacoes(Long id, String observacoes) {
-        Match match = matchRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Match", id));
+    public MatchResponse atualizarObservacoes(UUID playgroupId, Long id, String observacoes) {
+        Match match = matchRepository.findByIdAndPlaygroup_Id(id, playgroupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Match", id));
         match.setObservacoes(observacoes);
         return MatchResponse.from(matchRepository.save(match));
     }
 
     @Transactional
-    public void deletar(Long id) {
-        if (!matchRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Match", id);
-        }
+    public void deletar(UUID playgroupId, Long id) {
+        Match match = matchRepository.findByIdAndPlaygroup_Id(id, playgroupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Match", id));
         matchRepository.deleteById(id);
     }
 }

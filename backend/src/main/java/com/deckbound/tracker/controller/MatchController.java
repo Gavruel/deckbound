@@ -26,7 +26,7 @@ public class MatchController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MatchResponse> findById(@PathVariable Long id, UUID playgroupId) {
+    public ResponseEntity<MatchResponse> findById(@PathVariable Long id, @PathVariable UUID playgroupId) {
         return ResponseEntity.ok(matchService.findById(id, playgroupId));
     }
 
@@ -38,15 +38,18 @@ public class MatchController {
 
     @PatchMapping("/{id}/observacoes")
     public ResponseEntity<MatchResponse> atualizarObservacoes(
-        @PathVariable Long id,
-        @RequestBody Map<String, String> body
+            @PathVariable UUID playgroupId,
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body
     ) {
-        return ResponseEntity.ok(matchService.atualizarObservacoes(id, body.get("observacoes")));
+        return ResponseEntity.ok(matchService.atualizarObservacoes(playgroupId, id, body.get("observacoes")));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        matchService.deletar(id);
+    public ResponseEntity<Void> deletar(
+            @PathVariable UUID playgroupId,
+            @PathVariable Long id) {
+        matchService.deletar(playgroupId, id);
         return ResponseEntity.noContent().build();
     }
 }
