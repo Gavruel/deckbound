@@ -12,6 +12,7 @@ target/
 *.iml
 *.iws
 *.ipr
+*.zip
 out/
 
 # VS Code
