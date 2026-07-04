@@ -46,10 +46,6 @@
         <div class="text-3xl font-bold text-amber-400" id="stat-jogadores">—</div>
         <div class="text-gray-500 text-sm mt-1">Jogadores</div>
       </div>
-      <!-- <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-center">
-        <div class="text-3xl font-bold text-amber-400" id="stat-comandantes">—</div>
-        <div class="text-gray-500 text-sm mt-1">Comandantes</div>
-      </div> -->
       <div class="bg-gray-900 border border-gray-800 rounded-lg p-5 text-center">
         <div class="text-3xl font-bold text-amber-400" id="stat-lider">—</div>
         <div class="text-gray-500 text-sm mt-1">Lider do Ranking</div>
@@ -96,7 +92,6 @@
 
         document.getElementById('stat-partidas').textContent    = matches.length;
         document.getElementById('stat-jogadores').textContent   = players.length;
-        // document.getElementById('stat-comandantes').textContent = commanders.length;
         document.getElementById('stat-lider').textContent       = ranking[0]?.nome ?? '—';
 
         const container = document.getElementById('ultimas-partidas');

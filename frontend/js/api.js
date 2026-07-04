@@ -1,7 +1,10 @@
-// DeckBound — Camada de comunicação com a API
-// Todos os fetch() passam por aqui
-
 const API_BASE = 'http://localhost:8080/api';
+
+let PLAYGROUP_ID = '8bc192f9-b7db-4479-96a5-3711400b074a';
+
+export function setPlaygroupId(id) {
+  PLAYGROUP_ID = id;
+}
 
 async function request(method, path, body = null) {
   const options = {
@@ -13,7 +16,7 @@ async function request(method, path, body = null) {
   const res = await fetch(`${API_BASE}${path}`, options);
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ erro: 'Erro desconhecido' }));
+    const err = await res.json().catch(() => ({ erro: 'unknown error' }));
     throw new Error(err.erro || `Erro ${res.status}`);
   }
 
@@ -21,22 +24,21 @@ async function request(method, path, body = null) {
   return res.json();
 }
 
-// Players
 export const api = {
   players: {
-    listar: () => request('GET', '/players'),
-    buscar: (id) => request('GET', `/players/${id}`),
-    criar: (data) => request('POST', '/players', data),
-    atualizar: (id, d) => request('PUT', `/players/${id}`, d),
-    deletar: (id) => request('DELETE', `/players/${id}`),
-    ranking: () => request('GET', '/players/ranking'),
+    listar: () => request('GET', `/playgroups/${PLAYGROUP_ID}/players`),
+    buscar: (id) => request('GET', `/playgroups/${PLAYGROUP_ID}/players/${id}`),
+    criar: (data) => request('POST', `/playgroups/${PLAYGROUP_ID}/players`, data),
+    atualizar: (id, d) => request('PUT', `/playgroups/${PLAYGROUP_ID}/players/${id}`, d),
+    deletar: (id) => request('DELETE', `/playgroups/${PLAYGROUP_ID}/players/${id}`),
+    ranking: () => request('GET', `/playgroups/${PLAYGROUP_ID}/players/ranking`),
   },
 
   matches: {
-    listar: () => request('GET', '/matches'),
-    buscar: (id) => request('GET', `/matches/${id}`),
-    criar: (data) => request('POST', '/matches', data),
-    deletar: (id) => request('DELETE', `/matches/${id}`),
+    listar: () => request('GET', `/playgroups/${PLAYGROUP_ID}/matches`),
+    buscar: (id) => request('GET', `/playgroups/${PLAYGROUP_ID}/matches/${id}`),
+    criar: (data) => request('POST', `/playgroups/${PLAYGROUP_ID}/matches`, data),
+    deletar: (id) => request('DELETE', `/playgroups/${PLAYGROUP_ID}/matches/${id}`),
   },
 
   commanders: {
@@ -51,7 +53,6 @@ export const api = {
     deletar: (matchId, id) => request('DELETE', `/matches/${matchId}/comments/${id}`),
   },
 
-  // Busca diretamente na API Scryfall (não passa pelo backend)
   scryfall: {
     buscar: async (nome) => {
       const res = await fetch(`https://api.scryfall.com/cards/named?fuzzy=${encodeURIComponent(nome)}`);
