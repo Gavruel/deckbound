@@ -4,28 +4,36 @@ import com.deckbound.tracker.dto.request.CreatePlaygroupRequest;
 import com.deckbound.tracker.dto.response.PlaygroupResponse;
 import com.deckbound.tracker.exception.ResourceNotFoundException;
 import com.deckbound.tracker.model.entity.Playgroup;
-import com.deckbound.tracker.model.entity.PlaygroupMember;
 import com.deckbound.tracker.model.entity.User;
-import com.deckbound.tracker.model.enums.PlaygroupMemberRole;
 import com.deckbound.tracker.repository.PlaygroupRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.UUID;
-
-import static com.fasterxml.jackson.databind.util.ClassUtil.name;
 
 
 @Service
 @RequiredArgsConstructor
 public class PlaygroupService {
 
+    private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private String generateInviteCode() {
+        StringBuilder sb = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            sb.append(CHARS.charAt(RANDOM.nextInt(CHARS.length())));
+        }
+        return sb.toString();
+    }
+
     private final PlaygroupRepository playgroupRepository;
 
-    @Transactional
-    public PlaygroupResponse findById(UUID id) {
+    @Transactional(readOnly = true)
+    public PlaygroupResponse getById(UUID id) {
         Playgroup playgroup = playgroupRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Playgroup", id));
 
@@ -33,41 +41,18 @@ public class PlaygroupService {
     }
 
 
-        @Transactional
-        public PlaygroupResponse create(CreatePlaygroupRequest request, User user) {
-            Playgroup playgroup = new Playgroup();
-
-            playgroup.setName(request.name());
-            playgroup.setInviteCode(UUID.randomUUID().toString());
-            playgroup.setCreatedAt(LocalDateTime.now());
-            playgroup.setCreatedBy(user);
-
-            /*
     @Transactional
-    public PlaygroupResponse create(CreatePlaygroupRequest request, User currentUser) {
+    public PlaygroupResponse create(CreatePlaygroupRequest request, User user) {
+        Playgroup playgroup = new Playgroup();
 
-        Playgroup playgroup = Playgroup.builder()
-                .name(request.name())
-                .inviteCode(UUID.randomUUID().toString())
-                .createdAt(LocalDateTime.now())
-                .createdBy(currentUser)
-                .build();
+        playgroup.setName(request.name());
+        playgroup.setInviteCode(generateInviteCode());
+        playgroup.setCreatedAt(LocalDateTime.now());
+        //playgroup.setCreatedBy(user);
 
-        PlaygroupMember owner = PlaygroupMember.builder()
-                .player(currentUser.getPlayer())
-                .playgroup(playgroup)
-                .playgroupMemberRole(PlaygroupMemberRole.OWNER)
-                .build();
-
-        playgroup.getMembers().add(owner);
-
-        return PlaygroupResponse.from(playgroupRepository.save(playgroup));
-
-    } */
-
-    Playgroup playgroupSaved = playgroupRepository.save(playgroup);
+        Playgroup playgroupSaved = playgroupRepository.save(playgroup);
 
         return PlaygroupResponse.from(playgroupSaved);
-}
+    }
 
 }
