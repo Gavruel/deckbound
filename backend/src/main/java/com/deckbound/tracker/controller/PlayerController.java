@@ -31,14 +31,17 @@ public class PlayerController {
     }
 
     @PostMapping
-    public ResponseEntity<PlayerResponse> create(@PathVariable UUID playgroupId , @Valid @RequestBody CreatePlayerRequest request) {
+    public ResponseEntity<PlayerResponse> create(
+            @PathVariable UUID playgroupId,
+            @Valid @RequestBody CreatePlayerRequest request
+    ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(playerService.create(playgroupId, request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PlayerResponse> atualizar(
-        @PathVariable Long id,
-        @Valid @RequestBody CreatePlayerRequest request
+            @PathVariable Long id,
+            @Valid @RequestBody CreatePlayerRequest request
     ) {
         return ResponseEntity.ok(playerService.atualizar(id, request));
     }

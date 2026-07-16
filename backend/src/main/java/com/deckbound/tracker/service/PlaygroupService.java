@@ -4,14 +4,17 @@ import com.deckbound.tracker.dto.request.CreatePlaygroupRequest;
 import com.deckbound.tracker.dto.response.PlaygroupResponse;
 import com.deckbound.tracker.exception.ResourceNotFoundException;
 import com.deckbound.tracker.model.entity.Playgroup;
-import com.deckbound.tracker.model.entity.User;
 import com.deckbound.tracker.repository.PlaygroupRepository;
+import com.deckbound.tracker.repository.UserRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.deckbound.tracker.model.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -21,6 +24,7 @@ public class PlaygroupService {
 
     private static final String CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
+    private final UserRepository userRepository;
 
     private String generateInviteCode() {
         StringBuilder sb = new StringBuilder(8);
@@ -42,13 +46,18 @@ public class PlaygroupService {
 
 
     @Transactional
-    public PlaygroupResponse create(CreatePlaygroupRequest request, User user) {
+    public PlaygroupResponse create(CreatePlaygroupRequest request) {
         Playgroup playgroup = new Playgroup();
+
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("User", UUID.fromString(userId)));
 
         playgroup.setName(request.name());
         playgroup.setInviteCode(generateInviteCode());
         playgroup.setCreatedAt(LocalDateTime.now());
-        //playgroup.setCreatedBy(user);
+        playgroup.setCreatedBy(user);
 
         Playgroup playgroupSaved = playgroupRepository.save(playgroup);
 

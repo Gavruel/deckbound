@@ -7,11 +7,19 @@ import java.time.LocalDateTime;
 
 public record PlayerResponse(
     Long id,
-    Playgroup playgroup,
+    PlaygroupSummaryResponse playgroup,
     String nome,
     LocalDateTime createdAt
 ) {
     public static PlayerResponse from(Player player) {
-        return new PlayerResponse(player.getId(), player.getPlaygroup(), player.getNome(), player.getCreatedAt());
+        return new PlayerResponse(
+                player.getId(),
+                new PlaygroupSummaryResponse(
+                        player.getPlaygroup().getId(),
+                        player.getPlaygroup().getName()
+                ),
+                player.getNome(),
+                player.getCreatedAt()
+        );
     }
 }
