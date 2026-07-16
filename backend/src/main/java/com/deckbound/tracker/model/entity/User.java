@@ -32,4 +32,9 @@ public class User {
     @Column(name = "created_at", nullable = true, updatable = false) // nullable = false, quando houver login, realizar essa troca
     private LocalDateTime createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
 }
