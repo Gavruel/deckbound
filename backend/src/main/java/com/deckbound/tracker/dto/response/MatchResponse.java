@@ -11,7 +11,7 @@ public record MatchResponse(
     Long id,
     LocalDateTime data,
     String formato,
-    PlayerResponse vencedor,
+    PlayerSummaryResponse vencedor,
     String observacoes,
     List<MatchPlayerResponse> jogadores,
     List<CommentResponse> comentarios
@@ -27,7 +27,7 @@ public record MatchResponse(
             match.getId(),
             match.getData(),
             match.getMatchFormat().name(),
-            match.getVencedor() != null ? PlayerResponse.from(match.getVencedor()) : null,
+            match.getVencedor() != null ? PlayerSummaryResponse.from(match.getVencedor()) : null,
             match.getObservacoes(),
             jogadores,
             comentarios
@@ -36,7 +36,7 @@ public record MatchResponse(
 
     public record MatchPlayerResponse(
         Long id,
-        PlayerResponse player,
+        PlayerSummaryResponse player,
         String guestNome,
         String nomeExibido,
         List<CommanderSlotResponse> comandantes
@@ -47,7 +47,7 @@ public record MatchResponse(
 
             return new MatchPlayerResponse(
                 mp.getId(),
-                mp.getPlayer() != null ? PlayerResponse.from(mp.getPlayer()) : null,
+                mp.getPlayer() != null ? PlayerSummaryResponse.from(mp.getPlayer()) : null,
                 mp.getGuestNome(),
                 mp.getNomeExibido(),
                 comandantes

@@ -1,7 +1,6 @@
 package com.deckbound.tracker.dto.response;
 
 import com.deckbound.tracker.model.entity.Player;
-import com.deckbound.tracker.model.entity.Playgroup;
 
 import java.time.LocalDateTime;
 

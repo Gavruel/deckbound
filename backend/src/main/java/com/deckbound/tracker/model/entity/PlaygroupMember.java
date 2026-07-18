@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "playgroup_members", uniqueConstraints =
-@UniqueConstraint(columnNames = {"player_id","playgroup_id"}))
+@UniqueConstraint(columnNames = {"user_id","playgroup_id"}))
 @Builder
 public class PlaygroupMember {
 
@@ -21,16 +21,16 @@ public class PlaygroupMember {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @JoinColumn(name = "player_id")
+    @JoinColumn(name = "user_id",  nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Player player;
+    private User user;
 
-    @JoinColumn(name = "playgroup_id")
+    @JoinColumn(name = "playgroup_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Playgroup playgroup;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "role")
+    @Column(name = "role", nullable = false)
     private PlaygroupMemberRole playgroupMemberRole;
 
     @Column(name = "joined_at", nullable = false, updatable = false)

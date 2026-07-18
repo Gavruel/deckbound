@@ -1,6 +1,5 @@
 package com.deckbound.tracker.dto.request;
 
-import io.jsonwebtoken.security.Password;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

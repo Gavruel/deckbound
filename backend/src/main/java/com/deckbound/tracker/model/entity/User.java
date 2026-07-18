@@ -29,7 +29,7 @@ public class User {
     @Column(name = "display_name", length = 200)
     private String displayName;
 
-    @Column(name = "created_at", nullable = true, updatable = false) // nullable = false, quando houver login, realizar essa troca
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

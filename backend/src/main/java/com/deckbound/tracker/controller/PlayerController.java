@@ -53,7 +53,7 @@ public class PlayerController {
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<List<RankingEntryResponse>> ranking() {
-        return ResponseEntity.ok(playerService.ranking());
+    public ResponseEntity<List<RankingEntryResponse>> ranking(@PathVariable UUID playgroupId) {
+        return ResponseEntity.ok(playerService.ranking(playgroupId));
     }
 }

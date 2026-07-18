@@ -25,15 +25,16 @@ public class PlayerService {
 
     @Transactional(readOnly = true)
     public List<PlayerResponse> listAll(UUID playgroupId) {
-        return playerRepository.findAll().stream()
-            .map(PlayerResponse::from)
-            .toList();
+        return playerRepository.findByPlaygroupId(playgroupId)
+                .stream()
+                .map(PlayerResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
     public PlayerResponse findById(Long id) {
         Player player = playerRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Player", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Player", id));
         return PlayerResponse.from(player);
     }
 
@@ -53,7 +54,7 @@ public class PlayerService {
     @Transactional
     public PlayerResponse atualizar(Long id, CreatePlayerRequest request) {
         Player player = playerRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Player", id));
+                .orElseThrow(() -> new ResourceNotFoundException("Player", id));
         player.setNome(request.nome());
         return PlayerResponse.from(playerRepository.save(player));
     }
@@ -67,13 +68,13 @@ public class PlayerService {
     }
 
     @Transactional(readOnly = true)
-    public List<RankingEntryResponse> ranking() {
-        return playerRepository.findRanking().stream()
-            .map(row -> new RankingEntryResponse(
-                ((Player) row[0]).getId(),
-                ((Player) row[0]).getNome(),
-                (Long) row[1]
-            ))
-            .toList();
+    public List<RankingEntryResponse> ranking(UUID playgroupId) {
+        return playerRepository.findRanking(playgroupId).stream()
+                .map(row -> new RankingEntryResponse(
+                        ((Player) row[0]).getId(),
+                        ((Player) row[0]).getNome(),
+                        (Long) row[1]
+                ))
+                .toList();
     }
 }

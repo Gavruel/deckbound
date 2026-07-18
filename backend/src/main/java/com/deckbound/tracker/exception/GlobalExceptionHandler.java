@@ -18,10 +18,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorBody(ex.getMessage()));
     }
 
+<<<<<<< HEAD
     /*@ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleEmailAlredyExists(EmailAlreadyExistsException ex){
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorBody(ex.getMessage()));
     }*/
+=======
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(errorBody(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AlreadyMemberException.class)
+    public ResponseEntity<Map<String, Object>> handleAlreadyMemberException(AlreadyMemberException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(errorBody(ex.getMessage()));
+    }
+>>>>>>> e03404b (feat(playgroup): implement membership management and invite flow)
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Map<String, Object>> handleBusiness(BusinessException ex) {
@@ -31,13 +45,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
         List<String> erros = ex.getBindingResult().getFieldErrors()
-            .stream()
-            .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
-            .toList();
+                .stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .toList();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-            "timestamp", LocalDateTime.now().toString(),
-            "erro", "Dados inválidos",
-            "detalhes", erros
+                "timestamp", LocalDateTime.now().toString(),
+                "erro", "Dados inválidos",
+                "detalhes", erros
         ));
     }
 

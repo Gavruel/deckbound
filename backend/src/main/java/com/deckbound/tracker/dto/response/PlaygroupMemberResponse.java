@@ -7,14 +7,14 @@ import java.util.UUID;
 
 public record PlaygroupMemberResponse(
         UUID id,
-        PlayerResponse player,
+        UserResponse user,
         String role,
         LocalDateTime joinedAt
 ) {
     public static  PlaygroupMemberResponse from(PlaygroupMember member) {
         return new PlaygroupMemberResponse(
                 member.getId(),
-                PlayerResponse.from(member.getPlayer()),
+                UserResponse.from(member.getUser()),
                 member.getPlaygroupMemberRole().name(),
                 member.getJoinedAt()
         );
