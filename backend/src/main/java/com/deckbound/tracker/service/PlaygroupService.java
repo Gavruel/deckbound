@@ -6,20 +6,12 @@ import com.deckbound.tracker.dto.response.PlaygroupResponse;
 import com.deckbound.tracker.exception.AlreadyMemberException;
 import com.deckbound.tracker.exception.ResourceNotFoundException;
 import com.deckbound.tracker.model.entity.Playgroup;
-<<<<<<< HEAD
-import com.deckbound.tracker.repository.PlaygroupRepository;
-import com.deckbound.tracker.repository.UserRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
-import com.deckbound.tracker.model.entity.User;
-import org.springframework.transaction.annotation.Transactional;
-=======
 import com.deckbound.tracker.model.entity.PlaygroupMember;
 import com.deckbound.tracker.model.entity.User;
 import com.deckbound.tracker.model.enums.PlaygroupMemberRole;
 import com.deckbound.tracker.repository.PlaygroupMemberRepository;
 import com.deckbound.tracker.repository.PlaygroupRepository;
 import com.deckbound.tracker.repository.UserRepository;
->>>>>>> e03404b (feat(playgroup): implement membership management and invite flow)
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -27,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,7 +32,6 @@ public class PlaygroupService {
     private final UserRepository userRepository;
 
     private final PlaygroupRepository playgroupRepository;
-    private final UserRepository userRepository;
     private final PlaygroupMemberRepository playgroupMemberRepository;
 
     private String generateInviteCode() {
@@ -69,19 +59,10 @@ public class PlaygroupService {
 
     @Transactional
     public PlaygroupResponse create(CreatePlaygroupRequest request) {
-<<<<<<< HEAD
         Playgroup playgroup = new Playgroup();
 
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-
-        User user = userRepository.findById(UUID.fromString(userId))
-                .orElseThrow(() -> new ResourceNotFoundException("User", UUID.fromString(userId)));
-
-=======
         User user = getCurrentUser();
 
-        Playgroup playgroup = new Playgroup();
->>>>>>> e03404b (feat(playgroup): implement membership management and invite flow)
         playgroup.setName(request.name());
         playgroup.setInviteCode(generateInviteCode());
         playgroup.setCreatedAt(LocalDateTime.now());
@@ -98,13 +79,6 @@ public class PlaygroupService {
 
     @Transactional
     public PlaygroupResponse join(JoinPlaygroupRequest request) {
-
-        /*String userId = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
-
-        User user = userRepository.findById(UUID.fromString(userId))
-                .orElseThrow(() -> new ResourceNotFoundException("User", UUID.fromString(userId)));*/
 
         User user = getCurrentUser();
 

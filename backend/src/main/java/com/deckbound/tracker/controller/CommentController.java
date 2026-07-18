@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/matches/{playgroupId}/{matchId}/comments")
@@ -19,21 +20,27 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<List<CommentResponse>> listar(@PathVariable Long matchId) {
-        return ResponseEntity.ok(commentService.listarPorPartida(matchId));
+    public ResponseEntity<List<CommentResponse>> listar(
+            @PathVariable UUID playgroupId,
+            @PathVariable Long matchId) {
+        return ResponseEntity.ok(commentService.listarPorPartida(playgroupId, matchId));
     }
 
     @PostMapping
     public ResponseEntity<CommentResponse> criar(
-        @PathVariable Long matchId,
-        @Valid @RequestBody CreateCommentRequest request
+            @PathVariable UUID playgroupId,
+            @PathVariable Long matchId,
+            @Valid @RequestBody CreateCommentRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.criar(matchId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.criar(playgroupId, matchId, request));
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deletar(@PathVariable Long commentId) {
-        commentService.deletar(commentId);
+    public ResponseEntity<Void> deletar(
+            @PathVariable UUID playgroupId,
+            @PathVariable Long matchId,
+            @PathVariable Long commentId) {
+        commentService.deletar(playgroupId, matchId, commentId);
         return ResponseEntity.noContent().build();
     }
 }

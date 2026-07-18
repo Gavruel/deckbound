@@ -21,10 +21,12 @@ public class PlayerService {
 
     private final PlayerRepository playerRepository;
     private final PlaygroupRepository playgroupRepository;
-
+    private final PlaygroupMemberService playgroupMemberService;
 
     @Transactional(readOnly = true)
     public List<PlayerResponse> listAll(UUID playgroupId) {
+        playgroupMemberService.assertMember(playgroupId);
+
         return playerRepository.findByPlaygroupId(playgroupId)
                 .stream()
                 .map(PlayerResponse::from)
@@ -32,14 +34,16 @@ public class PlayerService {
     }
 
     @Transactional(readOnly = true)
-    public PlayerResponse findById(Long id) {
-        Player player = playerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Player", id));
-        return PlayerResponse.from(player);
+    public PlayerResponse findById(UUID playgroupId, Long playerId) {
+        playgroupMemberService.assertMember(playgroupId);
+
+        return PlayerResponse.from(getOwnedPlayer(playgroupId, playerId));
     }
 
     @Transactional
     public PlayerResponse create(UUID playgroupId, CreatePlayerRequest request) {
+        playgroupMemberService.assertMember(playgroupId);
+
         Playgroup playgroup = playgroupRepository.findById(playgroupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Playgroup", playgroupId));
 
@@ -52,23 +56,27 @@ public class PlayerService {
     }
 
     @Transactional
-    public PlayerResponse atualizar(Long id, CreatePlayerRequest request) {
-        Player player = playerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Player", id));
+    public PlayerResponse update(UUID playgroupId, Long playerId, CreatePlayerRequest request) {
+        playgroupMemberService.assertMember(playgroupId);
+
+        Player player = getOwnedPlayer(playgroupId, playerId);
         player.setNome(request.nome());
+
         return PlayerResponse.from(playerRepository.save(player));
     }
 
     @Transactional
-    public void deletar(Long id) {
-        if (!playerRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Player", id);
-        }
-        playerRepository.deleteById(id);
+    public void delete(UUID playgroupId, Long playerId) {
+        playgroupMemberService.assertMember(playgroupId);
+
+        Player player = getOwnedPlayer(playgroupId, playerId);
+        playerRepository.delete(player);
     }
 
     @Transactional(readOnly = true)
     public List<RankingEntryResponse> ranking(UUID playgroupId) {
+        playgroupMemberService.assertMember(playgroupId);
+
         return playerRepository.findRanking(playgroupId).stream()
                 .map(row -> new RankingEntryResponse(
                         ((Player) row[0]).getId(),
@@ -76,5 +84,15 @@ public class PlayerService {
                         (Long) row[1]
                 ))
                 .toList();
+    }
+    private Player getOwnedPlayer(UUID playgroupId, Long playerId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Player", playerId));
+
+        if (!player.getPlaygroup().getId().equals(playgroupId)) {
+            throw new ResourceNotFoundException("Player", playerId);
+        }
+
+        return player;
     }
 }

@@ -25,9 +25,11 @@ public class PlayerController {
         return ResponseEntity.ok(playerService.listAll(playgroupId));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PlayerResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(playerService.findById(id));
+    @GetMapping("/{playerId}")
+    public ResponseEntity<PlayerResponse> findById(
+            @PathVariable UUID playgroupId,
+            @PathVariable Long playerId) {
+        return ResponseEntity.ok(playerService.findById(playgroupId, playerId));
     }
 
     @PostMapping
@@ -38,17 +40,20 @@ public class PlayerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(playerService.create(playgroupId, request));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PlayerResponse> atualizar(
-            @PathVariable Long id,
+    @PutMapping("/{playerId}")
+    public ResponseEntity<PlayerResponse> update(
+            @PathVariable UUID playgroupId,
+            @PathVariable Long playerId,
             @Valid @RequestBody CreatePlayerRequest request
     ) {
-        return ResponseEntity.ok(playerService.atualizar(id, request));
+        return ResponseEntity.ok(playerService.update(playgroupId, playerId, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        playerService.deletar(id);
+    @DeleteMapping("/{playerId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID playgroupId,
+            @PathVariable Long playerId) {
+        playerService.delete(playgroupId, playerId);
         return ResponseEntity.noContent().build();
     }
 

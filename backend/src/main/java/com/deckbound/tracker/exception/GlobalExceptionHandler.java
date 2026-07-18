@@ -18,12 +18,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorBody(ex.getMessage()));
     }
 
-<<<<<<< HEAD
-    /*@ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleEmailAlredyExists(EmailAlreadyExistsException ex){
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorBody(ex.getMessage()));
-    }*/
-=======
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -35,7 +29,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(errorBody(ex.getMessage()));
     }
->>>>>>> e03404b (feat(playgroup): implement membership management and invite flow)
+
+    @ExceptionHandler(PlaygroupAccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handlePlaygroupAccessDenied(PlaygroupAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorBody(ex.getMessage()));
+    }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Map<String, Object>> handleBusiness(BusinessException ex) {
