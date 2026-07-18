@@ -1,18 +1,25 @@
 # DeckBound
 
-Tracker de partidas de Magic: The Gathering para uso entre amigos.
+Tracker de partidas de Magic: The Gathering para uso entre amigos, com suporte a múltiplos grupos de jogo (playgroups) isolados entre si.
 
 ## Stack
 
-- **Backend:** Java 21 + Spring Boot 3.2 + PostgreSQL 16
-- **Frontend:** HTML + JavaScript (ES Modules) + Tailwind CSS
+- **Backend:** Java 25 + Spring Boot 3.4.5 + PostgreSQL 16
+- **Autenticação:** JWT (jjwt 0.12.6)
+- **Frontend:** React (em migração — a versão anterior em HTML/JS + Tailwind está sendo substituída)
 - **API externa:** Scryfall (busca de cartas)
+
+## Arquitetura
+
+O backend é multi-tenant: cada `Playgroup` é um grupo de jogo isolado. Um `User` (conta com login) pode ser membro de vários playgroups através de `PlaygroupMember`, que também define o papel (`ADMIN`/`MEMBER`) dentro daquele grupo. Todo endpoint que opera dentro de um playgroup específico exige que o usuário autenticado seja membro dele.
+
+`Player` representa um participante dentro de um playgroup (nome + estatísticas) e não exige conta própria — permite registrar convidados que não têm login no sistema.
 
 ## Rodando localmente
 
-### Pre-requisitos
+### Pré-requisitos
 
-- Java 21
+- Java 25
 - Maven 3.9+
 - Docker (para o banco de dados)
 
@@ -31,15 +38,12 @@ cd backend
 
 A API estará disponível em `http://localhost:8080`.
 
-### 3. Abrir o frontend
-
-Abra o arquivo `frontend/index.html` em um servidor local.
-Com VS Code, use a extensão **Live Server**.
-Ou via terminal:
+### 3. Subir o frontend
 
 ```bash
 cd frontend
-npx serve .
+npm install
+npm run dev
 ```
 
 ## Estrutura
@@ -47,30 +51,46 @@ npx serve .
 ```
 deckbound/
 ├── backend/          Spring Boot API
-├── frontend/         HTML + JS + Tailwind
-│   ├── index.html
-│   ├── js/api.js     Camada de comunicação com a API
-│   └── pages/        Páginas da aplicação
+├── frontend/         React (em migração)
 ├── docs/             Diagramas e documentação
 ├── docker-compose.yml
 └── README.md
 ```
 
+## Autenticação
+
+```
+POST   /api/auth/register
+POST   /api/auth/login
+```
+
+Login retorna um JWT que deve ser enviado em todas as demais chamadas via header `Authorization: Bearer <token>`.
+
 ## Endpoints principais
 
 ```
-GET    /api/players
-POST   /api/players
-GET    /api/players/ranking
+POST   /api/playgroups
+GET    /api/playgroups/{playgroupId}
+POST   /api/playgroups/join
 
-GET    /api/matches
-POST   /api/matches
-GET    /api/matches/{id}
-DELETE /api/matches/{id}
+GET    /api/playgroups/{playgroupId}/players
+GET    /api/playgroups/{playgroupId}/players/{playerId}
+POST   /api/playgroups/{playgroupId}/players
+PUT    /api/playgroups/{playgroupId}/players/{playerId}
+DELETE /api/playgroups/{playgroupId}/players/{playerId}
+GET    /api/playgroups/{playgroupId}/players/ranking
 
-POST   /api/commanders
+GET    /api/playgroups/{playgroupId}/matches
+GET    /api/playgroups/{playgroupId}/matches/{id}
+POST   /api/playgroups/{playgroupId}/matches
+PATCH  /api/playgroups/{playgroupId}/matches/{id}/observacoes
+DELETE /api/playgroups/{playgroupId}/matches/{id}
+
+GET    /api/matches/{playgroupId}/{matchId}/comments
+POST   /api/matches/{playgroupId}/{matchId}/comments
+DELETE /api/matches/{playgroupId}/{matchId}/comments/{commentId}
+
+GET    /api/commanders
 GET    /api/commanders/search?name=Atraxa
-
-GET    /api/matches/{id}/comments
-POST   /api/matches/{id}/comments
+POST   /api/commanders
 ```
