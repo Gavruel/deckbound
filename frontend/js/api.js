@@ -22,6 +22,7 @@ async function request(method, path, body = null) {
 
   if (res.status === 204) return null;
   return res.json();
+
 }
 
 export const api = {
